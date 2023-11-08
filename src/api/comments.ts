@@ -25,7 +25,15 @@ export const getComments = () => {
   const parsedData = JSON.parse(data) as Data;
 
   return new Promise<ReturnType<typeof denormalize>>((resolve) =>
-    setTimeout(() => resolve(denormalize(parsedData.data.comments)), 1000)
+    setTimeout(
+      () =>
+        resolve(
+          denormalize(
+            parsedData.data.comments.sort((a, b) => b.timestamp - a.timestamp)
+          )
+        ),
+      1000
+    )
   );
 };
 
@@ -49,6 +57,8 @@ export const sendComment = (text: string, parentId?: string) => {
     },
   };
   localStorage.setItem("thready-comments", JSON.stringify(newData));
+
+  return newComment;
 };
 
 export const seedData = () => {

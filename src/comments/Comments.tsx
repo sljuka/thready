@@ -3,6 +3,7 @@ import { getComments, sendComment } from "../api/comments";
 import { Skeleton } from "./Skeleton";
 import { Comment } from "./Comment";
 import React from "react";
+import { CommentForm } from "./CommentForm";
 
 export const Comments = () => {
   const { data, isLoading, isFetching, refetch } = useQuery("comments", () =>
@@ -17,10 +18,16 @@ export const Comments = () => {
   const submitComment = () => {
     if (!text) return;
 
-    sendComment(text, replyingToCommentId);
+    const newComment = sendComment(text, replyingToCommentId);
     refetch().then(() => {
       setText("");
       setReplyingToCommentId(undefined);
+
+      setTimeout(() => {
+        document.getElementById(`comment-${newComment.id}`)?.scrollIntoView({
+          behavior: "smooth",
+        });
+      }, 300);
     });
   };
 
@@ -68,31 +75,16 @@ export const Comments = () => {
             </button>
           </span>
         )}
-        <form
+        <CommentForm
           onSubmit={(e) => {
             e.preventDefault();
             submitComment();
           }}
-          className="flex items-center justify-between bg-white px-6"
-          style={{
-            boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)",
-          }}
-        >
-          <input
-            className="w-full py-4 outline-none"
-            placeholder="type something..."
-            autoFocus
-            name="comment"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-          <button
-            disabled={isFetching}
-            className="py-3 text-sm px-8 rounded-lg bg-gray-300 font-semibold"
-          >
-            {isFetching ? "Loading..." : replyingToCommentId ? "Reply" : "Send"}
-          </button>
-        </form>
+          isFetching={isFetching}
+          text={text}
+          onTextChange={(e) => setText(e.target.value)}
+          replyingToCommentId={replyingToCommentId}
+        />
       </div>
     </div>
   );
