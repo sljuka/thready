@@ -29,10 +29,54 @@ export const getComments = () => {
   );
 };
 
+export const sendComment = (text: string, parentId?: string) => {
+  const data = localStorage.getItem("thready-comments") || "{}";
+  const parsedData = JSON.parse(data) as Data;
+  const newComment: Comment = {
+    id: Math.random().toString(),
+    text,
+    author: {
+      name: "John Doe",
+      picture: "img/john.jpg",
+    },
+    timestamp: Date.now(),
+    parent_id: parentId,
+  };
+
+  const newData = {
+    data: {
+      comments: [...parsedData.data.comments, newComment],
+    },
+  };
+  localStorage.setItem("thready-comments", JSON.stringify(newData));
+};
+
 export const seedData = () => {
   if (localStorage.getItem("thready-comments")) return;
 
   localStorage.setItem("thready-comments", JSON.stringify(seedJSONData));
+};
+
+const createTreeOfComments = (
+  comment: Comment,
+  commentsById: Record<string, Comment>,
+  allComments: Comment[]
+): Comment => {
+  const children = allComments
+    .filter((x) => x.parent_id === comment.id)
+    .map((comment) => {
+      const commentId = comment.id as keyof typeof commentsById;
+      return createTreeOfComments(
+        commentsById[commentId],
+        commentsById,
+        allComments
+      );
+    });
+
+  return {
+    ...comment,
+    children,
+  };
 };
 
 const denormalize = (comments: Comment[]) => {
@@ -41,15 +85,9 @@ const denormalize = (comments: Comment[]) => {
     return acc;
   }, {} as Record<string, Comment>);
 
-  const rootComments = comments.filter((comment) => !comment.parent_id);
-
-  const tree = rootComments.map((comment) => {
-    const children = comments.filter((child) => child.parent_id === comment.id);
-    return {
-      ...comment,
-      children,
-    };
-  });
+  const tree = comments
+    .filter((comment) => !comment.parent_id) // only root comments
+    .map((comment) => createTreeOfComments(comment, commentsById, comments));
 
   return {
     commentsById,
