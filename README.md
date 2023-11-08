@@ -3,7 +3,8 @@
 1. Install dependencies: `npm install`
 2. Start the development server: `npm run dev`
 3. Open [http://localhost:5173](http://localhost:5173) in your browser
-4. Make some comments!
+4. It seeds some data (comments) in localstorage when opening the app for the first time, so there will be initial data to view
+5. Make some comments!
 
 # React + TypeScript + Vite
 
